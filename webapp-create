@@ -91,7 +91,7 @@ read -p "👉 Press ENTER to detect WM_CLASS..."
 # ===== WM_CLASS =====
 echo "🖱️ Click the opened window..."
 
-"$APP_DIR/$APP_NAME" &
+"$APP_DIR/$APP_NAME" --no-sandbox &
 APP_PID=$!
 
 sleep 3
@@ -113,7 +113,7 @@ DESKTOP_FILE="$DESKTOP_DIR/$SAFE_NAME.desktop"
 cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Name=$APP_NAME
-Exec=$APP_DIR/$APP_NAME
+Exec=$APP_DIR/$APP_NAME --no-sandbox
 Icon=$ICON_FINAL
 Type=Application
 Categories=Network;
