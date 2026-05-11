@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Target directory
+VIDEO_DIR="/data/yami/Videos/ytv"
+mkdir -p "$VIDEO_DIR"
+cd "$VIDEO_DIR"
+
+echo "Downloading to: $VIDEO_DIR"
+
+yt-dlp -vU "$1"
+
+cd ~
+
+echo "Done."

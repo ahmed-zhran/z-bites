@@ -1,0 +1,43 @@
+#!/bin/bash
+
+BASE="$HOME/.config"
+PREFIX="chrome-alt"
+DESKTOP_DIR="$HOME/.local/share/applications"
+ICON_DIR="$HOME/.local/share/icons/chrome-alt"
+
+echo "=============================="
+echo "Original Chrome"
+echo "=============================="
+echo "Binary  : $(which google-chrome)"
+echo "User Dir: $HOME/.config/google-chrome"
+echo "Icon    : /opt/google/chrome/product_logo_256.png"
+echo ""
+
+echo "=============================="
+echo "Chrome Alt Instances"
+echo "=============================="
+
+found=false
+
+for dir in "$BASE"/$PREFIX*; do
+  [ -d "$dir" ] || continue
+
+  found=true
+
+  name=$(basename "$dir")
+
+  ICON_PATH="$ICON_DIR/$name.png"
+  DESKTOP_PATH="$DESKTOP_DIR/$name.desktop"
+
+  echo "------------------------------"
+  echo "Instance : $name"
+  echo "User Dir : $dir"
+  echo "Icon     : $ICON_PATH"
+  echo "Desktop  : $DESKTOP_PATH"
+done
+
+if [ "$found" = false ]; then
+  echo "No Chrome Alt instances found."
+fi
+
+echo "=============================="

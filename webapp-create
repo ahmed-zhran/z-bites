@@ -1,0 +1,136 @@
+#!/bin/bash
+
+set -e
+
+APP_NAME="$1"
+APP_URL="$2"
+shift 2
+
+ICON_PATH=""
+USER_AGENT=""
+
+# ===== PARSE FLAGS =====
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --icon)
+      ICON_PATH="$2"
+      shift 2
+      ;;
+    --user-agent)
+      USER_AGENT="$2"
+      shift 2
+      ;;
+    *)
+      echo "❌ Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
+BASE_DIR="$HOME/MyPC/yami/Apllications"
+DESKTOP_DIR="$HOME/.local/share/applications"
+
+if [ -z "$APP_NAME" ] || [ -z "$APP_URL" ]; then
+  echo "Usage:"
+  echo "webapp-create \"App Name\" \"URL\" [--icon PATH] [--user-agent UA]"
+  exit 1
+fi
+
+# ===== SAFE NAME =====
+SAFE_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
+APP_DIR="$BASE_DIR/$SAFE_NAME"
+
+# ===== PERSISTENT SESSION =====
+PARTITION="persist:$SAFE_NAME"
+
+echo "📦 Creating app: $APP_NAME"
+echo "📁 Target dir : $APP_DIR"
+echo "🧠 Partition   : $PARTITION"
+
+mkdir -p "$BASE_DIR"
+cd "$BASE_DIR"
+
+# ===== BUILD FLAGS =====
+NATIVEFIER_FLAGS=(
+  --name "$APP_NAME"
+  --single-instance
+  --internal-urls ".*"
+  --browserwindow-options "{\"webPreferences\":{\"partition\":\"$PARTITION\"}}"
+)
+
+if [ -n "$USER_AGENT" ]; then
+  echo "🌐 Using custom user-agent (overrides --honest)"
+  NATIVEFIER_FLAGS+=(--user-agent "$USER_AGENT")
+else
+  echo "🔐 Using --honest mode"
+  NATIVEFIER_FLAGS+=(--honest)
+fi
+
+# ===== BUILD =====
+echo "🔧 Building with Nativefier..."
+
+nativefier "${NATIVEFIER_FLAGS[@]}" "$APP_URL"
+
+mv "$APP_NAME-linux-x64" "$APP_DIR"
+
+# ===== ICON =====
+if [ -n "$ICON_PATH" ] && [ -f "$ICON_PATH" ]; then
+  echo "🎨 Applying icon..."
+  cp "$ICON_PATH" "$APP_DIR/icon.png"
+  convert "$APP_DIR/icon.png" -resize 256x256 "$APP_DIR/icon.png" 2>/dev/null || true
+  ICON_FINAL="$APP_DIR/icon.png"
+else
+  echo "ℹ️ No icon provided → using default"
+  ICON_FINAL="$APP_DIR/resources/app/icon.png"
+fi
+
+# ===== READY PROMPT =====
+echo ""
+read -p "👉 Press ENTER to detect WM_CLASS..."
+
+# ===== WM_CLASS =====
+echo "🖱️ Click the opened window..."
+
+"$APP_DIR/$APP_NAME" &
+APP_PID=$!
+
+sleep 3
+
+WM_CLASS=$(xprop WM_CLASS | awk -F\" '{print $4}')
+
+kill $APP_PID 2>/dev/null || true
+
+if [ -z "$WM_CLASS" ]; then
+  echo "❌ Failed to detect WM_CLASS"
+  exit 1
+fi
+
+echo "🎯 WM_CLASS = $WM_CLASS"
+
+# ===== DESKTOP FILE =====
+DESKTOP_FILE="$DESKTOP_DIR/$SAFE_NAME.desktop"
+
+cat > "$DESKTOP_FILE" <<EOF
+[Desktop Entry]
+Name=$APP_NAME
+Exec=$APP_DIR/$APP_NAME
+Icon=$ICON_FINAL
+Type=Application
+Categories=Network;
+StartupWMClass=$WM_CLASS
+Terminal=false
+StartupNotify=true
+EOF
+
+chmod +x "$DESKTOP_FILE"
+
+echo ""
+echo "📊 SUMMARY"
+echo "----------------------------------"
+echo "App Path     : $APP_DIR"
+echo "Desktop File : $DESKTOP_FILE"
+echo "Icon         : $ICON_FINAL"
+echo "Partition    : $PARTITION"
+
+echo ""
+echo "✅ DONE"

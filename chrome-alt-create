@@ -1,0 +1,57 @@
+#!/bin/bash
+
+BASE="$HOME/.config"
+PREFIX="chrome-alt"
+ICON_SRC="/opt/google/chrome/product_logo_256.png"
+ICON_DIR="$HOME/.local/share/icons/chrome-alt"
+DESKTOP_DIR="$HOME/.local/share/applications"
+
+mkdir -p "$ICON_DIR"
+
+# ---- find next index (no limit) ----
+i=1
+while [ -d "$BASE/$PREFIX$i" ]; do
+  i=$((i+1))
+done
+
+NEW_DIR="$BASE/$PREFIX$i"
+mkdir -p "$NEW_DIR"
+
+ICON_PATH="$ICON_DIR/$PREFIX$i.png"
+cp "$ICON_SRC" "$ICON_PATH"
+
+DESKTOP="$DESKTOP_DIR/$PREFIX$i.desktop"
+
+echo "Choose mode:"
+echo "1) Full Browser"
+echo "2) App (minimal window)"
+read -rp "Enter choice [1-2]: " MODE
+
+if [ "$MODE" = "2" ]; then
+  read -rp "Enter URL: " URL
+
+  EXEC_CMD="google-chrome --user-data-dir=$NEW_DIR --class=$PREFIX$i --app=\"$URL\""
+  NAME="Chrome App $i"
+else
+  EXEC_CMD="google-chrome --user-data-dir=$NEW_DIR --class=$PREFIX$i --new-window"
+  NAME="Chrome Alt $i"
+fi
+
+# ---- create desktop file ----
+cat > "$DESKTOP" <<EOF
+[Desktop Entry]
+Name=$NAME
+Exec=$EXEC_CMD
+Icon=$ICON_PATH
+Type=Application
+StartupWMClass=$PREFIX$i
+EOF
+
+chmod +x "$DESKTOP"
+
+echo ""
+echo "✅ Created instance $i"
+echo "User Dir : $NEW_DIR"
+echo "Icon     : $ICON_PATH"
+echo "Desktop  : $DESKTOP"
+echo "Mode     : $NAME"

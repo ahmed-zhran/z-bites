@@ -1,0 +1,53 @@
+#!/bin/bash
+
+APP_NAME="$1"
+
+if [ -z "$APP_NAME" ]; then
+  echo "Usage: webapp-remove \"App Name\""
+  exit 1
+fi
+
+# ===== SAME NORMALIZATION AS CREATE =====
+SAFE_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
+
+BASE_DIR="$HOME/MyPC/yami/Apllications"
+DESKTOP_DIR="$HOME/.local/share/applications"
+CONFIG_DIR="$HOME/.config"
+
+APP_DIR="$BASE_DIR/$SAFE_NAME"
+DESKTOP_FILE="$DESKTOP_DIR/$SAFE_NAME.desktop"
+
+FOUND=false
+
+echo "🗑 Removing: $APP_NAME"
+echo "🔍 Resolved name: $SAFE_NAME"
+
+# ===== REMOVE APP =====
+if [ -d "$APP_DIR" ]; then
+  rm -rf "$APP_DIR"
+  echo "✔ Removed app directory: $APP_DIR"
+  FOUND=true
+fi
+
+# ===== REMOVE DESKTOP =====
+if [ -f "$DESKTOP_FILE" ]; then
+  rm -f "$DESKTOP_FILE"
+  echo "✔ Removed desktop entry: $DESKTOP_FILE"
+  FOUND=true
+fi
+
+# ===== REMOVE NATIVEFIER CONFIG =====
+for dir in "$CONFIG_DIR"/${SAFE_NAME}-nativefier-*; do
+  if [ -d "$dir" ]; then
+    rm -rf "$dir"
+    echo "✔ Removed nativefier config: $dir"
+    FOUND=true
+  fi
+done
+
+# ===== RESULT =====
+if [ "$FOUND" = false ]; then
+  echo "❌ No app found with name: $APP_NAME"
+else
+  echo "✅ Done"
+fi

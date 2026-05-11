@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Target directory
+AUDIO_DIR="/data/yami/Music/ytv"
+mkdir -p "$AUDIO_DIR"
+
+echo "Downloading audio to: $AUDIO_DIR"
+
+yt-dlp -vU \
+-x --audio-format mp3 \
+-o "$AUDIO_DIR/%(title).200B.%(ext)s" \
+"$1"
+
+echo "Done."

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+BASE="$HOME/.config"
+PREFIX="chrome-alt"
+ICON_DIR="$HOME/.local/share/icons/chrome-alt"
+DESKTOP_DIR="$HOME/.local/share/applications"
+
+i=1
+while [ -d "$BASE/$PREFIX$i" ]; do
+  i=$((i+1))
+done
+
+LAST=$((i-1))
+
+if [ "$LAST" -lt 1 ]; then
+  echo "No chrome-alt instances found"
+  exit 0
+fi
+
+DIR="$BASE/$PREFIX$LAST"
+DESKTOP="$DESKTOP_DIR/$PREFIX$LAST.desktop"
+ICON="$ICON_DIR/$PREFIX$LAST.png"
+
+rm -rf "$DIR"
+rm -f "$DESKTOP"
+rm -f "$ICON"
+
+echo "🗑 Deleted Chrome Alt $LAST"
