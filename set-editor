@@ -1,0 +1,38 @@
+#!/bin/bash
+
+set -e
+
+echo "📝 Available editors:"
+echo ""
+
+select editor in $(update-alternatives --list editor); do
+  if [ -n "$editor" ]; then
+    echo ""
+    echo "🔧 Setting default editor to:"
+    echo "$editor"
+
+    sudo update-alternatives --set editor "$editor"
+
+    BASENAME=$(basename "$editor")
+
+    # Remove old entries
+    sed -i '/export EDITOR=/d' ~/.bashrc
+    sed -i '/export VISUAL=/d' ~/.bashrc
+
+    # Add new ones
+    echo "export EDITOR=$BASENAME" >> ~/.bashrc
+    echo "export VISUAL=$BASENAME" >> ~/.bashrc
+
+    export EDITOR="$BASENAME"
+    export VISUAL="$BASENAME"
+
+    echo ""
+    echo "✅ Default editor updated"
+    echo "EDITOR=$EDITOR"
+    echo "VISUAL=$VISUAL"
+
+    break
+  else
+    echo "❌ Invalid selection"
+  fi
+done
