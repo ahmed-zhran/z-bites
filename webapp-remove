@@ -10,7 +10,7 @@ fi
 # ===== SAME NORMALIZATION AS CREATE =====
 SAFE_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
 
-BASE_DIR="$HOME/MyPC/yami/Apllications"
+BASE_DIR="$HOME/mypc/yami/Apllications"
 DESKTOP_DIR="$HOME/.local/share/applications"
 CONFIG_DIR="$HOME/.config"
 

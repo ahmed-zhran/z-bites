@@ -27,7 +27,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-BASE_DIR="$HOME/MyPC/yami/Apllications"
+BASE_DIR="$HOME/mypc/yami/Apllications"
 DESKTOP_DIR="$HOME/.local/share/applications"
 
 if [ -z "$APP_NAME" ] || [ -z "$APP_URL" ]; then
