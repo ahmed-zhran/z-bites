@@ -86,6 +86,14 @@ Interactively set the default system editor.
   - Uses `update-alternatives` to set the system default.
   - Updates `EDITOR` and `VISUAL` variables in `~/.bashrc`.
 
+### `opencode-setup-big-pickle`
+Install and configure the OpenCode CLI to work with the Big Pickle ("pig pickle") model.
+- **Usage**: `./opencode-setup [API_KEY]`
+- **What it does**:
+  - Automatically installs the OpenCode CLI if not present.
+  - Configures the `OPENCODE_API_KEY` in environment profiles (`~/.bashrc`, `~/.zshrc`).
+  - Sets up global and project-level configs to use the `opencode/big-pickle` model.
+
 ---
 
 ## 🚀 Installation

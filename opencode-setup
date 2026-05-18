@@ -1,0 +1,122 @@
+#!/bin/bash
+
+# 🐷 Setup script for OpenCode CLI with the Big Pickle ("pig pickle") Model
+
+set -euo pipefail
+
+# ANSI color codes
+MUTED='\033[0;2m'
+GREEN='\033[0;32m'
+ORANGE='\033[38;5;214m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+echo -e "🚀 ${BLUE}OpenCode \"Big Pickle\" Setup Utility${NC}"
+echo -e "${MUTED}Configuring OpenCode to work with the Big Pickle (a.k.a. \"pig pickle\") model...${NC}\n"
+
+# 1. Get or prompt for API Key
+API_KEY="${1:-}"
+
+if [ -z "$API_KEY" ]; then
+    echo -e "🔑 ${ORANGE}No API key provided as an argument.${NC}"
+    read -s -rp "   Please enter your OpenCode API key: " API_KEY
+    echo ""
+fi
+
+if [ -z "$API_KEY" ]; then
+    echo -e "❌ ${RED}Error: API key cannot be empty.${NC}"
+    exit 1
+fi
+
+# 2. Install OpenCode if not already installed
+if ! command -v opencode >/dev/null 2>&1 && [ ! -f "$HOME/.opencode/bin/opencode" ]; then
+    echo -e "📥 ${BLUE}OpenCode CLI is not installed. Installing now...${NC}"
+    curl -fsSL https://opencode.ai/install | bash
+    echo -e "✅ ${GREEN}OpenCode CLI installed successfully.${NC}"
+else
+    echo -e "✨ ${GREEN}OpenCode CLI is already installed.${NC}"
+fi
+
+# 3. Ensure OpenCode is in the PATH
+INSTALL_DIR="$HOME/.opencode/bin"
+if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+    export PATH="$INSTALL_DIR:$PATH"
+fi
+
+# 4. Set OpenCode API Key in Shell Configuration Files
+echo -e "🔧 ${BLUE}Configuring environment variables...${NC}"
+
+SHELL_CONFIGS=( "$HOME/.bashrc" "$HOME/.zshrc" )
+UPDATED_CONFIGS=()
+
+for CONFIG in "${SHELL_CONFIGS[@]}"; do
+    if [ -f "$CONFIG" ]; then
+        # Remove any existing export for OPENCODE_API_KEY
+        sed -i '/export OPENCODE_API_KEY=/d' "$CONFIG"
+        
+        # Append new key
+        echo -e "\n# OpenCode configuration" >> "$CONFIG"
+        echo "export OPENCODE_API_KEY=\"$API_KEY\"" >> "$CONFIG"
+        UPDATED_CONFIGS+=("$CONFIG")
+    fi
+done
+
+# Also export it in the current session
+export OPENCODE_API_KEY="$API_KEY"
+
+if [ ${#UPDATED_CONFIGS[@]} -gt 0 ]; then
+    echo -e "   ✅ Updated API Key in: ${MUTED}${UPDATED_CONFIGS[*]}${NC}"
+else
+    echo -e "   ⚠️  No standard shell config files found (~/.bashrc or ~/.zshrc)."
+    echo -e "      Please manually run: ${ORANGE}export OPENCODE_API_KEY=\"$API_KEY\"${NC}"
+fi
+
+# 5. Configure Global OpenCode to use the Big Pickle ("pig pickle") Model
+echo -e "🤖 ${BLUE}Configuring OpenCode to use the Big Pickle model...${NC}"
+
+# Use Python to safely merge or create opencode.json without breaking other configurations
+python3 -c '
+import json, os
+config_path = os.path.expanduser("~/.config/opencode/opencode.json")
+os.makedirs(os.path.dirname(config_path), exist_ok=True)
+
+config_data = {}
+if os.path.exists(config_path):
+    try:
+        with open(config_path, "r") as f:
+            config_data = json.load(f)
+    except Exception:
+        # If file is empty or corrupted, start fresh
+        pass
+
+# Set the Big Pickle model
+config_data["$schema"] = "https://opencode.ai/config.json"
+config_data["model"] = "opencode/big-pickle"
+
+with open(config_path, "w") as f:
+    json.dump(config_data, f, indent=2)
+'
+
+# Also write a project-specific opencode.json for maximum reliability
+PROJECT_CONFIG="./opencode.json"
+python3 -c '
+import json
+config_data = {
+    "$schema": "https://opencode.ai/config.json",
+    "model": "opencode/big-pickle"
+}
+with open("'"$PROJECT_CONFIG"'", "w") as f:
+    json.dump(config_data, f, indent=2)
+'
+
+echo -e "   ✅ Global config updated: ${MUTED}~/.config/opencode/opencode.json${NC}"
+echo -e "   ✅ Project config created: ${MUTED}./opencode.json${NC}"
+
+# 6. Success message and usage
+echo -e "\n🎉 ${GREEN}OpenCode setup complete!${NC}"
+echo -e "💡 ${ORANGE}Note:${NC} The \"pig pickle\" model is referenced as ${GREEN}opencode/big-pickle${NC} internally."
+echo -e "👉 To apply changes to your current terminal, run:"
+echo -e "   ${BLUE}source ~/.bashrc${NC} (or ${BLUE}source ~/.zshrc${NC})"
+echo -e "👉 To start OpenCode, run:"
+echo -e "   ${BLUE}opencode${NC}\n"
