@@ -7,6 +7,7 @@ A collection of personal Ubuntu utility scripts for productivity, browser manage
 - [Chrome Alt Management](#-chrome-alt-management)
 - [Web App Management](#-web-app-management)
 - [YouTube Utilities](#-youtube-utilities)
+- [Manhwa Scraping](#-manhwa-scraping)
 - [System Tools](#-system-tools)
 
 ---
@@ -18,8 +19,9 @@ Ensure you have the following tools installed:
 - **Nativefier**: Required for `webapp-create`. (`npm install -g nativefier`)
 - **yt-dlp**: Required for `yta` and `ytv`.
 - **FFmpeg**: Required for audio conversion in `yta`.
-- **ImageMagick**: Required for icon processing in `webapp-create`.
+- **ImageMagick**: Required for icon processing in `webapp-create` and PDF generation in `manhwa-scrape`.
 - **xprop**: Required for window detection in `webapp-create`.
+- **Python packages**: Required for `manhwa-scrape` (`pip install requests beautifulsoup4 lxml`).
 
 ---
 
@@ -74,6 +76,19 @@ Downloads audio from a URL and converts it to MP3.
 Downloads the best quality video from a URL.
 - **Usage**: `./ytv "URL"`
 - **Save Path**: `/data/yami/Videos/ytv`
+
+---
+
+## 📖 Manhwa Scraping
+
+Download manhwa chapters from Omega Scans as PDFs.
+
+### `manhwa-scrape`
+Scrapes all chapters of a manhwa series and converts them to PDF files.
+- **Usage**: `./manhwa-scrape <url> <output_directory>`
+- **Example**: `./manhwa-scrape https://omegascans.org/series/the-beginning-after-the-end/ /data/downloads`
+- **Output**: Creates a subfolder named after the series, with one PDF per chapter.
+- **How it works**: Extracts image URLs from the Next.js RSC payload on each chapter page, downloads them in parallel, and assembles them into PDFs via ImageMagick.
 
 ---
 
