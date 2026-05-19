@@ -9,6 +9,7 @@ A collection of personal Ubuntu utility scripts for productivity, browser manage
 - [YouTube Utilities](#-youtube-utilities)
 - [Manhwa Scraping](#-manhwa-scraping)
 - [System Tools](#-system-tools)
+- [System Tools](#-system-tools)
 
 ---
 
@@ -19,9 +20,9 @@ Ensure you have the following tools installed:
 - **Nativefier**: Required for `webapp-create`. (`npm install -g nativefier`)
 - **yt-dlp**: Required for `yta` and `ytv`.
 - **FFmpeg**: Required for audio conversion in `yta`.
-- **ImageMagick**: Required for icon processing in `webapp-create` and PDF generation in `manhwa-scrape`.
+- **ImageMagick**: Required for icon processing in `webapp-create`.
 - **xprop**: Required for window detection in `webapp-create`.
-- **Python packages**: Required for `manhwa-scrape` (`pip install requests beautifulsoup4 lxml`).
+- **Python 3 + img2pdf**: Required for PDF generation in `manhwa-scrape` (`pip install img2pdf`).
 
 ---
 
@@ -81,14 +82,17 @@ Downloads the best quality video from a URL.
 
 ## 📖 Manhwa Scraping
 
-Download manhwa chapters from Omega Scans as PDFs.
+Download manhwa chapters from supported platforms as PDFs.
 
 ### `manhwa-scrape`
 Scrapes all chapters of a manhwa series and converts them to PDF files.
-- **Usage**: `./manhwa-scrape <url> <output_directory>`
-- **Example**: `./manhwa-scrape https://omegascans.org/series/the-beginning-after-the-end/ /data/downloads`
-- **Output**: Creates a subfolder named after the series, with one PDF per chapter.
-- **How it works**: Extracts image URLs from the Next.js RSC payload on each chapter page, downloads them in parallel, and assembles them into PDFs via ImageMagick.
+- **Usage**: `./manhwa-scrape <platform> <url> <output_directory>`
+- **Platforms**: `omegascans`, `asurascans`
+- **Examples**:
+  - `./manhwa-scrape omegascans https://omegascans.org/series/new-town-massage /data/downloads`
+  - `./manhwa-scrape asurascans https://asurascans.com/comics/immortals-way-of-life-9a7a1ac5 /data/downloads`
+- **Output**: Creates `<output>/<Manhwa Title>/Chapter_<N>.pdf` for each chapter.
+- **How it works**: Fetches chapter lists via API (Omega) or HTML parsing (Asura), extracts images from each chapter page, downloads in parallel, and assembles into PDFs via `img2pdf`.
 
 ---
 
