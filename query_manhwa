@@ -15,16 +15,11 @@ python3 - <<PY
 
 import os
 import json
+import difflib
 
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
+query = "$QUERY".lower()
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
-query = "$QUERY"
-
-documents = []
-metadata = []
+results = []
 
 for file in os.listdir("$CACHE_DIR"):
 
@@ -38,51 +33,39 @@ for file in os.listdir("$CACHE_DIR"):
 
     chapter = file.replace(".json", "")
 
+    best_score = 0
+    best_text = ""
+    best_page = 0
+
     for item in data:
 
-        text = item["description"]
+        text = item["description"].lower()
 
-        documents.append(text)
+        score = difflib.SequenceMatcher(
+            None,
+            query,
+            text
+        ).ratio()
 
-        metadata.append({
-            "chapter": chapter,
-            "page": item["page"],
-            "text": text
-        })
-
-query_embedding = model.encode([query])
-
-doc_embeddings = model.encode(documents)
-
-scores = cosine_similarity(query_embedding, doc_embeddings)[0]
-
-results = []
-
-for i, score in enumerate(scores):
+        if score > best_score:
+            best_score = score
+            best_text = item["description"]
+            best_page = item["page"]
 
     results.append({
-        "score": float(score),
-        "chapter": metadata[i]["chapter"],
-        "page": metadata[i]["page"],
-        "text": metadata[i]["text"]
+        "chapter": chapter,
+        "page": best_page,
+        "score": best_score,
+        "text": best_text
     })
 
 results.sort(key=lambda x: x["score"], reverse=True)
-
-seen = set()
 
 print("")
 print("Query:", query)
 print("")
 
-for r in results[:15]:
-
-    key = r["chapter"]
-
-    if key in seen:
-        continue
-
-    seen.add(key)
+for r in results[:10]:
 
     print("=" * 60)
     print("Chapter:", r["chapter"])
