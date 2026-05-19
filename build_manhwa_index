@@ -1,0 +1,108 @@
+#!/bin/bash
+
+set -e
+
+if [ $# -ne 2 ]; then
+    echo "Usage:"
+    echo "  build_manhwa_index <manhwa_folder> <cache_folder>"
+    exit 1
+fi
+
+MANHWA_DIR="$1"
+CACHE_DIR="$2"
+
+mkdir -p "$CACHE_DIR"
+TMP_DIR=$(mktemp -d)
+
+for pdf in "$MANHWA_DIR"/*.pdf; do
+
+    [ -f "$pdf" ] || continue
+
+    BASENAME=$(basename "$pdf" .pdf)
+
+    echo ""
+    echo "======================================"
+    echo "Processing: $BASENAME"
+    echo "======================================"
+
+    CHAPTER_DIR="$TMP_DIR/$BASENAME"
+    mkdir -p "$CHAPTER_DIR"
+
+    pdftoppm -jpeg "$pdf" "$CHAPTER_DIR/page" >/dev/null 2>&1
+
+    JSON_FILE="$CACHE_DIR/$BASENAME.json"
+
+    echo "[" > "$JSON_FILE"
+
+    INDEX=0
+
+    for img in "$CHAPTER_DIR"/*.jpg; do
+
+        INDEX=$((INDEX + 1))
+
+        # sample every 3 pages
+        if (( INDEX % 3 != 0 )); then
+            continue
+        fi
+
+        echo "Analyzing page $INDEX..."
+
+        PROMPT="Describe the important actions and events happening in this manga/manhwa page.
+Focus on:
+- fights
+- kidnapping
+- restraints
+- emotional scenes
+- rescues
+- violence
+- interrogations
+- character interactions
+
+Be concise but descriptive."
+
+        RESPONSE=$(python3 - <<PY
+import requests
+import json
+import base64
+
+with open("$img", "rb") as f:
+    image_b64 = base64.b64encode(f.read()).decode()
+
+payload = {
+    "model": "qwen3-vl:4b-instruct",
+    "prompt": """$PROMPT""",
+    "images": [image_b64],
+    "stream": False
+}
+
+r = requests.post(
+    "http://localhost:11434/api/generate",
+    json=payload
+)
+
+print(r.json()["response"].replace("\\n", " "))
+PY
+)
+
+        RESPONSE=$(echo "$RESPONSE" | sed 's/"/\\"/g')
+
+        echo "  {" >> "$JSON_FILE"
+        echo "    \"page\": $INDEX," >> "$JSON_FILE"
+        echo "    \"description\": \"$RESPONSE\"" >> "$JSON_FILE"
+        echo "  }," >> "$JSON_FILE"
+
+    done
+
+    # remove last comma
+    sed -i '$ s/},/}/' "$JSON_FILE"
+
+    echo "]" >> "$JSON_FILE"
+
+    echo "Saved: $JSON_FILE"
+
+done
+
+rm -rf "$TMP_DIR"
+
+echo ""
+echo "Done building index."

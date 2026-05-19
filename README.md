@@ -94,6 +94,19 @@ Scrapes all chapters of a manhwa series and converts them to PDF files.
 - **Output**: Creates `<output>/<Manhwa Title>/Chapter_<N>.pdf` for each chapter.
 - **How it works**: Fetches chapter lists via API (Omega) or HTML parsing (Asura), extracts images from each chapter page, downloads in parallel, and assembles into PDFs via `img2pdf`.
 
+### `build_manhwa_index`
+Builds a searchable semantic index from scraped manhwa PDFs using a local Ollama vision model.
+- **Usage**: `./build_manhwa_index <manhwa_folder> <cache_folder>`
+- **Example**: `./build_manhwa_index /data/downloads/My-Manhwa ./cache`
+- **How it works**: Extracts pages from PDFs via `pdftoppm`, samples every 3rd page, sends each to a local Ollama instance (`qwen3-vl:4b-instruct`) for scene description, and saves per-chapter JSON index files.
+
+### `query_manhwa`
+Semantically searches the index built by `build_manhwa_index` using sentence embeddings.
+- **Usage**: `./query_manhwa <cache_folder> "<query>"`
+- **Example**: `./query_manhwa ./cache "fight scene with restraints"`
+- **Prerequisites**: `pip install sentence-transformers scikit-learn`
+- **How it works**: Encodes the query and all indexed descriptions with `all-MiniLM-L6-v2`, ranks by cosine similarity, and shows the top results (one per chapter).
+
 ---
 
 ## ⚙️ System Tools

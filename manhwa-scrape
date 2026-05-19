@@ -139,24 +139,39 @@ download_and_pdf() {
   done
   wait
 
-  # Convert images to PDF (use first image format as reference)
-  local first_ext
-  first_ext=$(ls "$tmpdir/"*.* 2>/dev/null | head -1 | sed 's/.*\.//')
   local pdf_path="$output_dir/$chapter_label.pdf"
 
-  if ls "$tmpdir/"*.* 2>/dev/null | sort -V | head -1 >/dev/null; then
-    # Use python3 img2pdf for reliable PDF generation
-    python3 -c "
-import img2pdf, glob
+  python3 -c "
+import glob, os, tempfile
+from PIL import Image
+import img2pdf
+
 files = sorted(glob.glob('$tmpdir/*.*'))
+if not files:
+    exit(1)
+
+imgs = [Image.open(f) for f in files]
+max_w = max(img.width for img in imgs)
+
+outdir = tempfile.mkdtemp()
+outfiles = []
+for img, f in zip(imgs, files):
+    if img.width != max_w:
+        ratio = max_w / img.width
+        new_h = int(img.height * ratio)
+        img = img.resize((max_w, new_h), Image.LANCZOS)
+    outpath = os.path.join(outdir, os.path.basename(f))
+    # Convert to RGB and save as JPEG for reliable PDF output
+    img.convert('RGB').save(outpath, 'JPEG', quality=92)
+    outfiles.append(outpath)
+    img.close()
+
 with open('$pdf_path', 'wb') as f:
-    f.write(img2pdf.convert(files))
-" 2>/dev/null && echo "  Saved: $pdf_path" || {
-      # Fallback to ImageMagick
-      convert $(ls "$tmpdir/"*.* 2>/dev/null | sort -V) -quality 90 "$pdf_path" 2>/dev/null \
-        && echo "  Saved: $pdf_path" || echo "  PDF conversion failed"
-    }
-  fi
+    f.write(img2pdf.convert(outfiles))
+
+import shutil
+shutil.rmtree(outdir, ignore_errors=True)
+" && echo "  Saved: $pdf_path" || echo "  PDF conversion failed"
 
   rm -rf "$tmpdir"
 }

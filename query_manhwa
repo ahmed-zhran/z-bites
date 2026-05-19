@@ -1,0 +1,95 @@
+#!/bin/bash
+
+set -e
+
+if [ $# -ne 2 ]; then
+    echo "Usage:"
+    echo "  query_manhwa <cache_folder> <query>"
+    exit 1
+fi
+
+CACHE_DIR="$1"
+QUERY="$2"
+
+python3 - <<PY
+
+import os
+import json
+
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
+query = "$QUERY"
+
+documents = []
+metadata = []
+
+for file in os.listdir("$CACHE_DIR"):
+
+    if not file.endswith(".json"):
+        continue
+
+    path = os.path.join("$CACHE_DIR", file)
+
+    with open(path, "r") as f:
+        data = json.load(f)
+
+    chapter = file.replace(".json", "")
+
+    for item in data:
+
+        text = item["description"]
+
+        documents.append(text)
+
+        metadata.append({
+            "chapter": chapter,
+            "page": item["page"],
+            "text": text
+        })
+
+query_embedding = model.encode([query])
+
+doc_embeddings = model.encode(documents)
+
+scores = cosine_similarity(query_embedding, doc_embeddings)[0]
+
+results = []
+
+for i, score in enumerate(scores):
+
+    results.append({
+        "score": float(score),
+        "chapter": metadata[i]["chapter"],
+        "page": metadata[i]["page"],
+        "text": metadata[i]["text"]
+    })
+
+results.sort(key=lambda x: x["score"], reverse=True)
+
+seen = set()
+
+print("")
+print("Query:", query)
+print("")
+
+for r in results[:15]:
+
+    key = r["chapter"]
+
+    if key in seen:
+        continue
+
+    seen.add(key)
+
+    print("=" * 60)
+    print("Chapter:", r["chapter"])
+    print("Page:", r["page"])
+    print("Score:", round(r["score"], 3))
+    print("")
+    print(r["text"])
+    print("")
+
+PY
