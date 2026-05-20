@@ -31,7 +31,6 @@ Ensure you have the following tools installed:
 Manage isolated Google Chrome instances with separate profiles and desktop entries.
 
 ### `chrome-alt-create`
-
 Creates a new Chrome profile instance.
 - **Usage**: Run the script and follow the interactive prompts.
 - **Modes**:
@@ -39,12 +38,10 @@ Creates a new Chrome profile instance.
   2. **App Mode**: Minimal window for a specific URL.
 
 ### `chrome-alt-list`
-
 Lists all current `chrome-alt` instances, their user directories, icons, and desktop entries.
 - **Usage**: `./chrome-alt-list`
 
 ### `chrome-alt-delete`
-
 Deletes the **most recently created** `chrome-alt` instance (removes profile, icon, and desktop entry).
 - **Usage**: `./chrome-alt-delete`
 
@@ -55,7 +52,6 @@ Deletes the **most recently created** `chrome-alt` instance (removes profile, ic
 Convert any website into a standalone desktop application.
 
 ### `webapp-create`
-
 Uses Nativefier to build an Electron-based app from a URL.
 - **Usage**: `./webapp-create "App Name" "URL" [--icon PATH] [--user-agent UA]`
 - **Flags**:
@@ -63,7 +59,6 @@ Uses Nativefier to build an Electron-based app from a URL.
   - `--user-agent`: Specify a custom user agent string.
 
 ### `webapp-remove`
-
 Removes a web app created by `webapp-create`.
 - **Usage**: `./webapp-remove "App Name"`
 
@@ -143,7 +138,7 @@ Install and configure the OpenCode CLI to work with the Big Pickle ("pig pickle"
 
 For a comprehensive list of all supported CLI agents, their trigger commands, and brief descriptions, see the agents documentation file:
 
-[agents.md](file:///home/zhran/mypc/projects/z-bites/agents.md)
+[AGENTS.md](file:///home/zhran/mypc/projects/z-bites/AGENTS.md)
 
 ## 🛠 Development Workflow
 
