@@ -30,7 +30,7 @@ check_agent() {
 
   if ! command -v "$cmd" >/dev/null 2>&1; then
     printf "  %2d. %-20s  %-16s  %b  -\n" "$num" "$name" "$cmd" "${RED}Not Installed${NC}"
-    return 1
+    return 0
   fi
 
   local version=""
@@ -109,7 +109,7 @@ check_runtime() {
   local cmd="$1"
   if ! command -v "$cmd" >/dev/null 2>&1; then
     printf "  %-20s : %b\n" "$cmd" "${RED}Not Installed${NC}"
-    return 1
+    return 0
   fi
 
   local version=""

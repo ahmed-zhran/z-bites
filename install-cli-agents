@@ -196,7 +196,7 @@ check_status() {
 
   if ! have_cmd "$cmd"; then
     printf "  %2d. %-20s  %-16s  %b  -\n" "$num" "$name" "$cmd" "${RED}Not Installed${NC}"
-    return 1
+    return 0
   fi
 
   local version=""
