@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 
 # =========================================================
-# Mega AI Coding Agents Installer (16 Agents Edition)
+# Mega AI Coding Agents Installer (15 Agents Edition)
 # =========================================================
 #
 # Features:
@@ -131,7 +131,7 @@ install_nodejs
 install_rust
 install_go
 
-# --- 16 Agent Installations ---
+# --- 15 Agent Installations ---
 
 # 1. OpenCode
 install_agent 1 "OpenCode" "opencode" "curl -fsSL https://opencode.ai/install | bash"
@@ -154,32 +154,29 @@ install_agent 6 "Mistral Vibe" "vibe" "pip3 install --break-system-packages git+
 # 7. GSD-2
 install_agent 7 "GSD-2" "gsd" "npm install -g gsd-pi"
 
-# 8. Get Shit Done
-install_agent 8 "Get Shit Done" "get-shit-done-cc" "npm install -g get-shit-done-cc"
+# 8. Qwen Code
+install_agent 8 "Qwen Code" "qwen" "npm install -g @qwen-code/qwen-code"
 
-# 9. Qwen Code
-install_agent 9 "Qwen Code" "qwen" "npm install -g @qwen-code/qwen-code"
+# 9. OpenAI Codex
+install_agent 9 "OpenAI Codex" "codex" "npm install -g @openai/codex"
 
-# 10. OpenAI Codex
-install_agent 10 "OpenAI Codex" "codex" "npm install -g @openai/codex"
+# 10. GitHub Copilot CLI
+install_agent 10 "GitHub Copilot CLI" "github-copilot" "npm install -g @githubnext/github-copilot-cli"
 
-# 11. GitHub Copilot CLI
-install_agent 11 "GitHub Copilot CLI" "github-copilot" "npm install -g @githubnext/github-copilot-cli"
+# 11. PI
+install_agent 11 "PI" "pi" "npm install -g @earendil-works/pi-coding-agent"
 
-# 12. PI
-install_agent 12 "PI" "pi" "npm install -g @earendil-works/pi-coding-agent"
+# 12. Hermes
+install_agent 12 "Hermes" "hermes" "curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash"
 
-# 13. Hermes
-install_agent 13 "Hermes" "hermes" "curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash"
+# 13. Antigravity
+install_agent 13 "Antigravity" "antigravity" "curl -fsSL https://antigravity.google/install | bash"
 
-# 14. Antigravity
-install_agent 14 "Antigravity" "antigravity" "curl -fsSL https://antigravity.google/install | bash"
+# 14. Claude Code
+install_agent 14 "Claude Code" "claude" "npm install -g @anthropic-ai/claude-code"
 
-# 15. Claude Code
-install_agent 15 "Claude Code" "claude" "npm install -g @anthropic-ai/claude-code"
-
-# 16. Gemini CLI
-install_agent 16 "Gemini CLI" "gemini" "npm install -g @google/gemini-cli"
+# 15. Gemini CLI
+install_agent 15 "Gemini CLI" "gemini" "npm install -g @google/gemini-cli"
 
 # Cleanup legacy ~/ai-agents directory to fulfill clean-up request
 if [ -d "$HOME/ai-agents" ]; then
@@ -243,9 +240,6 @@ check_status() {
     gsd)
       version=$(gsd --version 2>&1 | head -n 1 || true)
       ;;
-    get-shit-done-cc)
-      version=$(get-shit-done-cc --version 2>&1 | head -n 1 || true)
-      ;;
     qwen)
       version=$(qwen --version 2>&1 | head -n 1 || true)
       ;;
@@ -280,15 +274,14 @@ check_status 4 "Goose" "goose"
 check_status 5 "Crush" "crush"
 check_status 6 "Mistral Vibe" "vibe"
 check_status 7 "GSD-2" "gsd"
-check_status 8 "Get Shit Done" "get-shit-done-cc"
-check_status 9 "Qwen Code" "qwen"
-check_status 10 "OpenAI Codex" "codex"
-check_status 11 "GitHub Copilot CLI" "github-copilot"
-check_status 12 "PI" "pi"
-check_status 13 "Hermes" "hermes"
-check_status 14 "Antigravity" "antigravity"
-check_status 15 "Claude Code" "claude"
-check_status 16 "Gemini CLI" "gemini"
+check_status 8 "Qwen Code" "qwen"
+check_status 9 "OpenAI Codex" "codex"
+check_status 10 "GitHub Copilot CLI" "github-copilot"
+check_status 11 "PI" "pi"
+check_status 12 "Hermes" "hermes"
+check_status 13 "Antigravity" "antigravity"
+check_status 14 "Claude Code" "claude"
+check_status 15 "Gemini CLI" "gemini"
 
 echo -e "${BOLD}${CYAN}========================================================================================${NC}"
 echo

@@ -136,16 +136,16 @@ Install and configure the OpenCode CLI to work with the Big Pickle ("pig pickle"
 
 ## 🤖 AI Agents Management
 
-Scripts to install and manage the 16 AI CLI agents supported by this repository.
+Scripts to install and manage the 15 AI CLI agents supported by this repository.
 
 ### `install-cli-agents`
-Installs required dependencies (Node, Rust, Go, Python) and the 16 CLI agents.
+Installs required dependencies (Node, Rust, Go, Python) and the 15 CLI agents.
 - **Usage**: `./install-cli-agents`
 - **What it does**:
   - Installs Node.js, Rust, Go, and Python system dependencies.
-  - Dynamically installs 16 different AI agents including OpenCode, Goose, Crush, Claude Code, and Gemini.
+  - Dynamically installs 15 different AI agents including OpenCode, Goose, Crush, Claude Code, and Gemini.
 
 ### `list-cli-agents`
-Checks the installation status and version of all 16 supported AI CLI agents.
+Checks the installation status and version of all 15 supported AI CLI agents.
 - **Usage**: `./list-cli-agents`
 - **What it does**: Outputs a formatted status table of all agents and required runtimes (node, cargo, go, python).

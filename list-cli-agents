@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # =========================================================
-# Mega AI CLI Agents Status & Version Checker (16 Agents)
+# Mega AI CLI Agents Status & Version Checker (15 Agents)
 # =========================================================
 
 # Ensure standard path options are active
@@ -17,7 +17,7 @@ NC="\e[0m" # No Color
 
 print_header() {
   echo -e "${BOLD}${CYAN}========================================================================================${NC}"
-  echo -e "  ${BOLD}MEGA AI CLI AGENTS & DEVELOPER TOOLS STATUS (16 AGENTS)${NC}"
+  echo -e "  ${BOLD}MEGA AI CLI AGENTS & DEVELOPER TOOLS STATUS (15 AGENTS)${NC}"
   echo -e "${BOLD}${CYAN}========================================================================================${NC}"
   printf "  ${BOLD}%-3s  %-20s  %-16s  %-14s  %s${NC}\n" "#" "AGENT NAME" "TRIGGER CMD" "STATUS" "VERSION"
   echo -e "${CYAN}----------------------------------------------------------------------------------------${NC}"
@@ -75,9 +75,6 @@ check_agent() {
       ;;
     gsd)
       version=$(gsd --version 2>&1 | head -n 1 || true)
-      ;;
-    get-shit-done-cc)
-      version=$(get-shit-done-cc --version 2>&1 | head -n 1 || true)
       ;;
     qwen)
       version=$(qwen --version 2>&1 | head -n 1 || true)
@@ -143,7 +140,7 @@ check_runtime() {
 # Run list checks
 print_header
 
-# The 16 Core Agents
+# The 15 Core Agents
 check_agent 1 "OpenCode" "opencode"
 check_agent 2 "NanoCoder" "nanocoder"
 check_agent 3 "Codebuff" "codebuff"
@@ -151,15 +148,14 @@ check_agent 4 "Goose" "goose"
 check_agent 5 "Crush" "crush"
 check_agent 6 "Mistral Vibe" "vibe"
 check_agent 7 "GSD-2" "gsd"
-check_agent 8 "Get Shit Done" "get-shit-done-cc"
-check_agent 9 "Qwen Code" "qwen"
-check_agent 10 "OpenAI Codex" "codex"
-check_agent 11 "GitHub Copilot CLI" "github-copilot"
-check_agent 12 "PI" "pi"
-check_agent 13 "Hermes" "hermes"
-check_agent 14 "Antigravity" "antigravity"
-check_agent 15 "Claude Code" "claude"
-check_agent 16 "Gemini CLI" "gemini"
+check_agent 8 "Qwen Code" "qwen"
+check_agent 9 "OpenAI Codex" "codex"
+check_agent 10 "GitHub Copilot CLI" "github-copilot"
+check_agent 11 "PI" "pi"
+check_agent 12 "Hermes" "hermes"
+check_agent 13 "Antigravity" "antigravity"
+check_agent 14 "Claude Code" "claude"
+check_agent 15 "Gemini CLI" "gemini"
 
 print_section "Core Environment & Runtimes"
 check_runtime "node"

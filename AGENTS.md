@@ -17,15 +17,14 @@
 | 5 | **Crush** | `crush` | Terminal UI library for building interactive applications. |
 | 6 | **Mistral Vibe** | `vibe` | Conversational AI model optimized for creative tasks. |
 | 7 | **GSD‑2** | `gsd` | General‑purpose coding assistant based on recent LLMs. |
-| 8 | **Get Shit Done** | `get‑shit‑done‑cc` | Fast, no‑frills code generation CLI. |
-| 9 | **Qwen Code** | `qwen` | Code‑focused model from Alibaba’s Qwen series. |
-|10 | **OpenAI Codex** | `codex` | Official OpenAI Codex CLI for code generation. |
-|11 | **GitHub Copilot CLI** | `github‑copilot` | GitHub’s AI pair‑programmer for the terminal. |
-|12 | **PI** | `pi` | Personalised AI assistant for coding tasks. |
-|13 | **Hermes** | `hermes` | Advanced LLM from NousResearch with strong reasoning. |
-|14 | **Antigravity** | `antigravity` | Powerful agentic AI coding assistant (Google Deepmind). |
-|15 | **Claude Code** | `claude` | Anthropic’s code‑centric model for secure generation. |
-|16 | **Gemini CLI** | `gemini` | Google Gemini‑based CLI for multimodal AI assistance. |
+| 8 | **Qwen Code** | `qwen` | Code‑focused model from Alibaba’s Qwen series. |
+| 9 | **OpenAI Codex** | `codex` | Official OpenAI Codex CLI for code generation. |
+|10 | **GitHub Copilot CLI** | `github‑copilot` | GitHub’s AI pair‑programmer for the terminal. |
+|11 | **PI** | `pi` | Personalised AI assistant for coding tasks. |
+|12 | **Hermes** | `hermes` | Advanced LLM from NousResearch with strong reasoning. |
+|13 | **Antigravity** | `antigravity` | Powerful agentic AI coding assistant (Google Deepmind). |
+|14 | **Claude Code** | `claude` | Anthropic’s code‑centric model for secure generation. |
+|15 | **Gemini CLI** | `gemini` | Google Gemini‑based CLI for multimodal AI assistance. |
 
 ---
 
