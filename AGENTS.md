@@ -22,7 +22,7 @@
 |10 | **GitHub Copilot CLI** | `github‑copilot` | GitHub’s AI pair‑programmer for the terminal. |
 |11 | **PI** | `pi` | Personalised AI assistant for coding tasks. |
 |12 | **Hermes** | `hermes` | Advanced LLM from NousResearch with strong reasoning. |
-|13 | **Antigravity** | `antigravity` | Powerful agentic AI coding assistant (Google Deepmind). |
+|13 | **Antigravity** | `agy` | Powerful agentic AI coding assistant (Google Deepmind). |
 |14 | **Claude Code** | `claude` | Anthropic’s code‑centric model for secure generation. |
 |15 | **Gemini CLI** | `gemini` | Google Gemini‑based CLI for multimodal AI assistance. |
 

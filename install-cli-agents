@@ -170,7 +170,7 @@ install_agent 11 "PI" "pi" "npm install -g @earendil-works/pi-coding-agent"
 install_agent 12 "Hermes" "hermes" "curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash"
 
 # 13. Antigravity
-install_agent 13 "Antigravity" "antigravity" "curl -fsSL https://antigravity.google/install | bash"
+install_agent 13 "Antigravity" "agy" "curl -fsSL https://antigravity.google/install | bash"
 
 # 14. Claude Code
 install_agent 14 "Claude Code" "claude" "npm install -g @anthropic-ai/claude-code"
@@ -201,8 +201,8 @@ check_status() {
 
   local version=""
   case "$cmd" in
-    antigravity)
-      version=$(antigravity --version 2>&1 | head -n 1 || true)
+    agy)
+      version=$(agy --version 2>&1 | head -n 1 || true)
       ;;
     opencode)
       version=$(opencode --version 2>&1 | head -n 1 || true)
@@ -279,7 +279,7 @@ check_status 9 "OpenAI Codex" "codex"
 check_status 10 "GitHub Copilot CLI" "github-copilot"
 check_status 11 "PI" "pi"
 check_status 12 "Hermes" "hermes"
-check_status 13 "Antigravity" "antigravity"
+check_status 13 "Antigravity" "agy"
 check_status 14 "Claude Code" "claude"
 check_status 15 "Gemini CLI" "gemini"
 

@@ -37,8 +37,8 @@ check_agent() {
   
   # Fetch version based on specific tools to avoid prompts/blocking
   case "$cmd" in
-    antigravity)
-      version=$(antigravity --version 2>&1 | head -n 1 || true)
+    agy)
+      version=$(agy --version 2>&1 | head -n 1 || true)
       ;;
     opencode)
       version=$(opencode --version 2>&1 | head -n 1 || true)
@@ -153,7 +153,7 @@ check_agent 9 "OpenAI Codex" "codex"
 check_agent 10 "GitHub Copilot CLI" "github-copilot"
 check_agent 11 "PI" "pi"
 check_agent 12 "Hermes" "hermes"
-check_agent 13 "Antigravity" "antigravity"
+check_agent 13 "Antigravity" "agy"
 check_agent 14 "Claude Code" "claude"
 check_agent 15 "Gemini CLI" "gemini"
 
