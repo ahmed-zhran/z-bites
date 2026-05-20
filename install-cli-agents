@@ -161,7 +161,7 @@ install_agent 8 "Qwen Code" "qwen" "npm install -g @qwen-code/qwen-code"
 install_agent 9 "OpenAI Codex" "codex" "npm install -g @openai/codex"
 
 # 10. GitHub Copilot CLI
-install_agent 10 "GitHub Copilot CLI" "copilot" "npm install -g @githubnext/github-copilot-cli"
+install_agent 10 "GitHub Copilot CLI" "copilot" "npm install -g @github/copilot"
 
 # 11. PI
 install_agent 11 "PI" "pi" "npm install -g @earendil-works/pi-coding-agent"
