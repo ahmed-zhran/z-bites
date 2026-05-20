@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+
+# =========================================================
+# Mega AI CLI Agents Status & Version Checker (17 Agents)
+# =========================================================
+
+# Ensure standard path options are active
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:/usr/local/go/bin:$HOME/go/bin:$PATH"
+
+# Colors
+BOLD="\e[1m"
+GREEN="\e[32m"
+RED="\e[31m"
+YELLOW="\e[33m"
+CYAN="\e[36m"
+NC="\e[0m" # No Color
+
+print_header() {
+  echo -e "${BOLD}${CYAN}========================================================================================${NC}"
+  echo -e "  ${BOLD}MEGA AI CLI AGENTS & DEVELOPER TOOLS STATUS (17 AGENTS)${NC}"
+  echo -e "${BOLD}${CYAN}========================================================================================${NC}"
+  printf "  ${BOLD}%-3s  %-20s  %-16s  %-14s  %s${NC}\n" "#" "AGENT NAME" "TRIGGER CMD" "STATUS" "VERSION"
+  echo -e "${CYAN}----------------------------------------------------------------------------------------${NC}"
+}
+
+check_agent() {
+  local num="$1"
+  local name="$2"
+  local cmd="$3"
+
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    printf "  %2d. %-20s  %-16s  %b  -\n" "$num" "$name" "$cmd" "${RED}Not Installed${NC}"
+    return 1
+  fi
+
+  local version=""
+  
+  # Fetch version based on specific tools to avoid prompts/blocking
+  case "$cmd" in
+    antigravity)
+      version=$(antigravity --version 2>&1 | head -n 1 || true)
+      ;;
+    opencode)
+      version=$(opencode --version 2>&1 | head -n 1 || true)
+      ;;
+    hermes)
+      version=$(hermes --version 2>&1 | head -n 1 || true)
+      ;;
+    claude)
+      version=$(claude --version 2>&1 | head -n 1 || true)
+      ;;
+    gemini)
+      version=$(gemini --version 2>&1 | head -n 1 || true)
+      ;;
+    codex)
+      version=$(codex --version 2>&1 | head -n 1 || true)
+      ;;
+    github-copilot)
+      version=$(github-copilot --version 2>&1 | head -n 1 || true)
+      ;;
+    nanocoder)
+      version=$(nanocoder --version 2>&1 | head -n 1 || true)
+      ;;
+    codebuff)
+      version=$(codebuff --version 2>&1 | head -n 1 || true)
+      ;;
+    goose)
+      version=$(goose --version 2>&1 | head -n 1 || true)
+      ;;
+    crush)
+      version=$(crush --version 2>&1 | head -n 1 || true)
+      ;;
+    vibe)
+      version=$(vibe --version 2>&1 | head -n 1 || true)
+      ;;
+    gsd)
+      version=$(gsd --version 2>&1 | head -n 1 || true)
+      ;;
+    gsd-opencode)
+      version=$(gsd-opencode --version 2>&1 | head -n 1 || true)
+      ;;
+    get-shit-done-cc)
+      version=$(get-shit-done-cc --version 2>&1 | head -n 1 || true)
+      ;;
+    qwen)
+      version=$(qwen --version 2>&1 | head -n 1 || true)
+      ;;
+    pi)
+      version=$(pi --version 2>&1 | head -n 1 || true)
+      ;;
+    *)
+      # Fallback checks
+      version=$("$cmd" --version 2>&1 | head -n 1 || true)
+      if [[ -z "$version" || "$version" == *"Usage:"* || "$version" == *"Unknown option"* ]]; then
+        version=$("$cmd" -v 2>&1 | head -n 1 || true)
+      fi
+      ;;
+  esac
+
+  # Format version string
+  version=$(echo "$version" | tr -d '\r' | xargs)
+  if [[ -z "$version" ]]; then
+    printf "  %2d. %-20s  %-16s  %b  %s\n" "$num" "$name" "$cmd" "${GREEN}Installed${NC}" "(version unknown)"
+  else
+    printf "  %2d. %-20s  %-16s  %b  %s\n" "$num" "$name" "$cmd" "${GREEN}Installed${NC}" "($version)"
+  fi
+}
+
+print_section() {
+  echo -e "\n${BOLD}${YELLOW}▶ $1${NC}"
+  echo -e "${CYAN}----------------------------------------------------------------------------------------${NC}"
+}
+
+check_runtime() {
+  local cmd="$1"
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    printf "  %-20s : %b\n" "$cmd" "${RED}Not Installed${NC}"
+    return 1
+  fi
+
+  local version=""
+  case "$cmd" in
+    node)
+      version=$(node --version 2>&1 || true)
+      ;;
+    npm)
+      version=$(npm --version 2>&1 || true)
+      ;;
+    cargo)
+      version=$(cargo --version 2>&1 | awk '{print $2}' || true)
+      ;;
+    go)
+      version=$(go version 2>&1 | awk '{print $3}' || true)
+      ;;
+    python3)
+      version=$(python3 --version 2>&1 | awk '{print $2}' || true)
+      ;;
+    pip3)
+      version=$(pip3 --version 2>&1 | awk '{print $2}' || true)
+      ;;
+  esac
+  version=$(echo "$version" | tr -d '\r' | xargs)
+  printf "  %-20s : %b (%s)\n" "$cmd" "${GREEN}Installed${NC}" "$version"
+}
+
+# Run list checks
+print_header
+
+# The 17 Core Agents
+check_agent 1 "OpenCode" "opencode"
+check_agent 2 "NanoCoder" "nanocoder"
+check_agent 3 "Codebuff" "codebuff"
+check_agent 4 "Goose" "goose"
+check_agent 5 "Crush" "crush"
+check_agent 6 "Mistral Vibe" "vibe"
+check_agent 7 "GSD-2" "gsd"
+check_agent 8 "GSD-OpenCode" "gsd-opencode"
+check_agent 9 "Get Shit Done" "get-shit-done-cc"
+check_agent 10 "Qwen Code" "qwen"
+check_agent 11 "OpenAI Codex" "codex"
+check_agent 12 "GitHub Copilot CLI" "github-copilot"
+check_agent 13 "PI" "pi"
+check_agent 14 "Hermes" "hermes"
+check_agent 15 "Antigravity" "antigravity"
+check_agent 16 "Claude Code" "claude"
+check_agent 17 "Gemini CLI" "gemini"
+
+print_section "Core Environment & Runtimes"
+check_runtime "node"
+check_runtime "npm"
+check_runtime "cargo"
+check_runtime "go"
+check_runtime "python3"
+check_runtime "pip3"
+
+echo -e "\n${BOLD}${CYAN}========================================================================================${NC}\n"

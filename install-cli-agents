@@ -1,0 +1,314 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+# =========================================================
+# Mega AI Coding Agents Installer (17 Agents Edition)
+# =========================================================
+#
+# Features:
+# - Installs required dependencies (Node, Rust, Go, Python)
+# - Performs robust existence checks before running any installation step
+# - Uses direct installation commands (npm, pip, go, curl) to avoid cloning
+# - Includes Claude Code and Gemini CLI as integrated tools
+# - Displays a complete status summary table at the end
+# =========================================================
+
+TEMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TEMP_DIR"' EXIT
+
+BIN_DIR="$HOME/.local/bin"
+mkdir -p "$BIN_DIR"
+export PATH="$BIN_DIR:$HOME/.cargo/bin:/usr/local/go/bin:$HOME/go/bin:$PATH"
+
+# Colors
+BOLD="\e[1m"
+GREEN="\e[32m"
+RED="\e[31m"
+YELLOW="\e[33m"
+CYAN="\e[36m"
+NC="\e[0m"
+
+msg() {
+  echo
+  echo -e "${BOLD}${CYAN}====================================================${NC}"
+  echo -e "${BOLD}${YELLOW}$1${NC}"
+  echo -e "${BOLD}${CYAN}====================================================${NC}"
+}
+
+have_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+install_apt_packages() {
+  msg "Step 1: Installing System Dependencies"
+  
+  if have_cmd git && have_cmd curl && have_cmd build-essential; then
+    echo "✔ Basic system tools are already installed."
+    return
+  fi
+
+  sudo apt update
+  sudo apt install -y \
+    curl wget git unzip zip tar jq build-essential \
+    python3 python3-pip python3-venv pkg-config libssl-dev \
+    ca-certificates ripgrep fd-find fzf xclip
+}
+
+install_nodejs() {
+  if have_cmd node && have_cmd npm; then
+    echo "✔ Node.js already installed ($(node -v))"
+    return
+  fi
+
+  msg "Step 2: Installing Node.js LTS"
+  curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+  sudo apt install -y nodejs
+}
+
+install_rust() {
+  if have_cmd cargo; then
+    echo "✔ Rust already installed ($(cargo --version | awk '{print $2}'))"
+    return
+  fi
+
+  msg "Step 3: Installing Rust"
+  curl https://sh.rustup.rs -sSf | sh -s -- -y
+  export PATH="$HOME/.cargo/bin:$PATH"
+}
+
+install_go() {
+  if have_cmd go; then
+    echo "✔ Go already installed ($(go version | awk '{print $3}'))"
+    return
+  fi
+
+  msg "Step 4: Installing Go"
+  GO_VERSION="1.24.3"
+  ARCH="linux-amd64"
+  cd "$TEMP_DIR"
+  wget "https://go.dev/dl/go${GO_VERSION}.${ARCH}.tar.gz"
+  sudo rm -rf /usr/local/go
+  sudo tar -C /usr/local -xzf "go${GO_VERSION}.${ARCH}.tar.gz"
+
+  if ! grep -q '/usr/local/go/bin' "$HOME/.bashrc"; then
+    echo 'export PATH="/usr/local/go/bin:$PATH"' >> "$HOME/.bashrc"
+  fi
+  export PATH="/usr/local/go/bin:$PATH"
+}
+
+# ---------------------------------------------------------
+# Dynamic installation wrapper (idempotency guard)
+# ---------------------------------------------------------
+install_agent() {
+  local num="$1"
+  local name="$2"
+  local trigger_cmd="$3"
+  local install_cmd="$4"
+
+  if have_cmd "$trigger_cmd"; then
+    echo "✔ Agent #$num '$name' ($trigger_cmd) is already installed."
+    return
+  fi
+
+  msg "Installing $name"
+  echo "Executing: $install_cmd"
+  
+  # Run command in subshell with standard paths
+  (
+    export PATH="$BIN_DIR:$HOME/.cargo/bin:/usr/local/go/bin:$HOME/go/bin:$PATH"
+    eval "$install_cmd"
+  )
+}
+
+# ---------------------------------------------------------
+# Main Execution Flow
+# ---------------------------------------------------------
+
+# Ensure system runtimes are present
+install_apt_packages
+install_nodejs
+install_rust
+install_go
+
+# --- 17 Agent Installations ---
+
+# 1. OpenCode
+install_agent 1 "OpenCode" "opencode" "curl -fsSL https://opencode.ai/install | bash"
+
+# 2. NanoCoder
+install_agent 2 "NanoCoder" "nanocoder" "npm install -g @nanocollective/nanocoder"
+
+# 3. Codebuff
+install_agent 3 "Codebuff" "codebuff" "npm install -g codebuff"
+
+# 4. Goose
+install_agent 4 "Goose" "goose" "curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash"
+
+# 5. Crush
+install_agent 5 "Crush" "crush" "go install github.com/charmbracelet/crush@latest"
+
+# 6. Mistral Vibe
+install_agent 6 "Mistral Vibe" "vibe" "pip3 install --break-system-packages git+https://github.com/mistralai/mistral-vibe.git"
+
+# 7. GSD-2
+install_agent 7 "GSD-2" "gsd" "npm install -g gsd-pi"
+
+# 8. GSD-OpenCode
+install_agent 8 "GSD-OpenCode" "gsd-opencode" "npm install -g gsd-opencode"
+
+# 9. Get Shit Done
+install_agent 9 "Get Shit Done" "get-shit-done-cc" "npm install -g get-shit-done-cc"
+
+# 10. Qwen Code
+install_agent 10 "Qwen Code" "qwen" "npm install -g @qwen-code/qwen-code"
+
+# 11. OpenAI Codex
+install_agent 11 "OpenAI Codex" "codex" "npm install -g @openai/codex"
+
+# 12. GitHub Copilot CLI
+install_agent 12 "GitHub Copilot CLI" "github-copilot" "npm install -g @githubnext/github-copilot-cli"
+
+# 13. PI
+install_agent 13 "PI" "pi" "npm install -g @earendil-works/pi-coding-agent"
+
+# 14. Hermes
+install_agent 14 "Hermes" "hermes" "curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash"
+
+# 15. Antigravity
+install_agent 15 "Antigravity" "antigravity" "curl -fsSL https://antigravity.google/install | bash"
+
+# 16. Claude Code
+install_agent 16 "Claude Code" "claude" "npm install -g @anthropic-ai/claude-code"
+
+# 17. Gemini CLI
+install_agent 17 "Gemini CLI" "gemini" "npm install -g @google/gemini-cli"
+
+# Cleanup legacy ~/ai-agents directory to fulfill clean-up request
+if [ -d "$HOME/ai-agents" ]; then
+  msg "Cleaning up legacy ~/ai-agents source folder"
+  rm -rf "$HOME/ai-agents"
+  echo "✔ legacy ~/ai-agents directory removed."
+fi
+# ---------------------------------------------------------
+# Helper function to automatically add, commit, and push changes
+git_sync() {
+  local msg="$1"
+  if [ -z "$msg" ]; then
+    echo "Usage: git_sync \"commit message\""
+    return 1
+  fi
+  git add -A
+  git commit -m "$msg"
+  git push
+}
+
+
+# ---------------------------------------------------------
+# Dynamic Status Summary (Matching user's request)
+# ---------------------------------------------------------
+
+check_status() {
+  local num="$1"
+  local name="$2"
+  local cmd="$3"
+
+  if ! have_cmd "$cmd"; then
+    printf "  %2d. %-20s  %-16s  %b  -\n" "$num" "$name" "$cmd" "${RED}Not Installed${NC}"
+    return 1
+  fi
+
+  local version=""
+  case "$cmd" in
+    antigravity)
+      version=$(antigravity --version 2>&1 | head -n 1 || true)
+      ;;
+    opencode)
+      version=$(opencode --version 2>&1 | head -n 1 || true)
+      ;;
+    hermes)
+      version=$(hermes --version 2>&1 | head -n 1 || true)
+      ;;
+    claude)
+      version=$(claude --version 2>&1 | head -n 1 || true)
+      ;;
+    gemini)
+      version=$(gemini --version 2>&1 | head -n 1 || true)
+      ;;
+    codex)
+      version=$(codex --version 2>&1 | head -n 1 || true)
+      ;;
+    github-copilot)
+      version=$(github-copilot --version 2>&1 | head -n 1 || true)
+      ;;
+    nanocoder)
+      version=$(nanocoder --version 2>&1 | head -n 1 || true)
+      ;;
+    codebuff)
+      version=$(codebuff --version 2>&1 | head -n 1 || true)
+      ;;
+    goose)
+      version=$(goose --version 2>&1 | head -n 1 || true)
+      ;;
+    crush)
+      version=$(crush --version 2>&1 | head -n 1 || true)
+      ;;
+    vibe)
+      version=$(vibe --version 2>&1 | head -n 1 || true)
+      ;;
+    gsd)
+      version=$(gsd --version 2>&1 | head -n 1 || true)
+      ;;
+    gsd-opencode)
+      version=$(gsd-opencode --version 2>&1 | head -n 1 || true)
+      ;;
+    get-shit-done-cc)
+      version=$(get-shit-done-cc --version 2>&1 | head -n 1 || true)
+      ;;
+    qwen)
+      version=$(qwen --version 2>&1 | head -n 1 || true)
+      ;;
+    pi)
+      version=$(pi --version 2>&1 | head -n 1 || true)
+      ;;
+    *)
+      version=$("$cmd" --version 2>&1 | head -n 1 || true)
+      ;;
+  esac
+
+  version=$(echo "$version" | tr -d '\r' | xargs)
+  if [[ -z "$version" ]]; then
+    printf "  %2d. %-20s  %-16s  %b  %s\n" "$num" "$name" "$cmd" "${GREEN}Installed${NC}" "(version unknown)"
+  else
+    printf "  %2d. %-20s  %-16s  %b  %s\n" "$num" "$name" "$cmd" "${GREEN}Installed${NC}" "($version)"
+  fi
+}
+
+msg "INSTALLATION COMPLETE - SUMMARY REPORT"
+
+echo -e "${BOLD}${CYAN}========================================================================================${NC}"
+echo -e "  ${BOLD}MEGA AI CLI AGENTS & DEVELOPER TOOLS STATUS${NC}"
+echo -e "${BOLD}${CYAN}========================================================================================${NC}"
+printf "  ${BOLD}%-3s  %-20s  %-16s  %-14s  %s${NC}\n" "#" "AGENT NAME" "TRIGGER CMD" "STATUS" "VERSION"
+echo -e "${CYAN}----------------------------------------------------------------------------------------${NC}"
+
+check_status 1 "OpenCode" "opencode"
+check_status 2 "NanoCoder" "nanocoder"
+check_status 3 "Codebuff" "codebuff"
+check_status 4 "Goose" "goose"
+check_status 5 "Crush" "crush"
+check_status 6 "Mistral Vibe" "vibe"
+check_status 7 "GSD-2" "gsd"
+check_status 8 "GSD-OpenCode" "gsd-opencode"
+check_status 9 "Get Shit Done" "get-shit-done-cc"
+check_status 10 "Qwen Code" "qwen"
+check_status 11 "OpenAI Codex" "codex"
+check_status 12 "GitHub Copilot CLI" "github-copilot"
+check_status 13 "PI" "pi"
+check_status 14 "Hermes" "hermes"
+check_status 15 "Antigravity" "antigravity"
+check_status 16 "Claude Code" "claude"
+check_status 17 "Gemini CLI" "gemini"
+
+echo -e "${BOLD}${CYAN}========================================================================================${NC}"
+echo
