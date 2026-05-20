@@ -134,27 +134,18 @@ Install and configure the OpenCode CLI to work with the Big Pickle ("pig pickle"
 2. Make scripts executable: `chmod +x *`
 3. (Optional) Add the directory to your `PATH`.
 
-## 📄 Agents Documentation
+## 🤖 AI Agents Management
 
-For a comprehensive list of all supported CLI agents, their trigger commands, and brief descriptions, see the agents documentation file:
+Scripts to install and manage the 17 AI CLI agents supported by this repository.
 
-[AGENTS.md](file:///home/zhran/mypc/projects/z-bites/AGENTS.md)
+### `install-cli-agents`
+Installs required dependencies (Node, Rust, Go, Python) and the 17 CLI agents.
+- **Usage**: `./install-cli-agents`
+- **What it does**:
+  - Installs Node.js, Rust, Go, and Python system dependencies.
+  - Dynamically installs 17 different AI agents including OpenCode, Goose, Crush, Claude Code, and Gemini.
 
-## 🛠 Development Workflow
-
-Whenever you modify any script or documentation in this repository:
-
-1. Stage the changes:
-   ```bash
-   git add .
-   ```
-2. Commit with a descriptive message:
-   ```bash
-   git commit -m "Describe your change"
-   ```
-3. Push to the remote repository:
-   ```bash
-   git push
-   ```
-
-The `install-cli-agents` script also includes a helper function `git_sync` that can be invoked manually to automatically add, commit, and push after any change.
+### `list-cli-agents`
+Checks the installation status and version of all 17 supported AI CLI agents.
+- **Usage**: `./list-cli-agents`
+- **What it does**: Outputs a formatted status table of all agents and required runtimes (node, cargo, go, python).

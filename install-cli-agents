@@ -191,19 +191,6 @@ if [ -d "$HOME/ai-agents" ]; then
   echo "✔ legacy ~/ai-agents directory removed."
 fi
 # ---------------------------------------------------------
-# Helper function to automatically add, commit, and push changes
-git_sync() {
-  local msg="$1"
-  if [ -z "$msg" ]; then
-    echo "Usage: git_sync \"commit message\""
-    return 1
-  fi
-  git add -A
-  git commit -m "$msg"
-  git push
-}
-
-
 # ---------------------------------------------------------
 # Dynamic Status Summary (Matching user's request)
 # ---------------------------------------------------------
