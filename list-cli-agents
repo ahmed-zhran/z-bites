@@ -55,8 +55,8 @@ check_agent() {
     codex)
       version=$(codex --version 2>&1 | head -n 1 || true)
       ;;
-    github-copilot)
-      version=$(github-copilot --version 2>&1 | head -n 1 || true)
+    copilot)
+      version=$(copilot --version 2>&1 | head -n 1 || true)
       ;;
     nanocoder)
       version=$(nanocoder --version 2>&1 | head -n 1 || true)
@@ -150,7 +150,7 @@ check_agent 6 "Mistral Vibe" "vibe"
 check_agent 7 "GSD-2" "gsd"
 check_agent 8 "Qwen Code" "qwen"
 check_agent 9 "OpenAI Codex" "codex"
-check_agent 10 "GitHub Copilot CLI" "github-copilot"
+check_agent 10 "GitHub Copilot CLI" "copilot"
 check_agent 11 "PI" "pi"
 check_agent 12 "Hermes" "hermes"
 check_agent 13 "Antigravity" "agy"
