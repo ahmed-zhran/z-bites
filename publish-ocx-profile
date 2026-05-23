@@ -1,0 +1,408 @@
+#!/bin/bash
+# publish-ocx-profile - Publish an OCX profile to your GitHub Pages registry
+# Usage: publish-ocx-profile <source-name> [publish-name]
+#
+# Reads profile from ~/.config/opencode/profiles/<source-name>/
+# Publishes as component <publish-name> (defaults to <source-name>)
+# to ahmed-zhran/ocx-profiles GitHub repo
+#
+# The published profile is a complete snapshot with zero external dependencies.
+# ALL files from the source profile are included.
+#
+# Prerequisites:
+#   Source profile MUST have a valid parent-tree.json at its root with:
+#     { "self": { "registry": "...", "src": "...", "name": "..." }, "parents": [...] }
+#
+# Examples:
+#   publish-ocx-profile ws          # reads ws/, publishes as "ws"
+#   publish-ocx-profile ws z-ws     # reads ws/, publishes as "z-ws"
+
+set -euo pipefail
+
+PROFILES_DIR="$HOME/.config/opencode/profiles"
+REPO="git@github.com:ahmed-zhran/ocx-profiles.git"
+REGISTRY_URL="https://ahmed-zhran.github.io/ocx-profiles/"
+REGISTRY_ALIAS="zhran"
+
+SKIP_README=false
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [options] <source-name> [publish-name]
+
+Publish an OCX profile to your GitHub Pages registry.
+
+Options:
+  --skip-readme   Skip AI-powered README generation
+
+Arguments:
+  <source-name>   Profile name in ~/.config/opencode/profiles/<source-name>/
+  [publish-name]  Component name in registry (defaults to <source-name>)
+
+Prerequisites:
+  Source profile must have a parent-tree.json at its root.
+  For root profiles (no parent), create it manually:
+    { "self": { "registry": "...", "src": "...", "name": "..." }, "parents": [] }
+
+Examples:
+  $(basename "$0") ws                    # publish ws as "ws"
+  $(basename "$0") ws z-ws               # publish ws content as "z-ws"
+  $(basename "$0") --skip-readme ws      # publish without README generation
+EOF
+  exit 1
+}
+
+POSITIONAL_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --skip-readme) SKIP_README=true; shift ;;
+    --*) echo "Unknown option: $1"; usage ;;
+    *) POSITIONAL_ARGS+=("$1"); shift ;;
+  esac
+done
+
+set -- "${POSITIONAL_ARGS[@]}"
+
+SRC="${1:-}"
+PUBLISH_NAME="${2:-$SRC}"
+
+# ---- Generate/update profile README via opencode prompt ----
+# Creates a task prompt that instructs opencode (the AI) to read the
+# profile directory and generate a comprehensive README.md.
+generate_readme_via_opencode() {
+  local profile_dir="$1"
+  local profile_name="$2"
+  local prompt_file="$profile_dir/README.task.md"
+
+  echo "    Creating README generation task..."
+
+  # Write prompt with __PROFILE_NAME__ placeholder, then substitute
+  cat > "$prompt_file" << 'PROMPTEOF'
+# Task: Generate README.md for __PROFILE_NAME__ profile
+
+You are in an OpenCode profile directory. Create (or update) a comprehensive `README.md` in this directory that documents every aspect of the profile.
+
+## What to do
+
+Read ALL of the following files in the current directory to understand the profile:
+
+1. **`opencode.jsonc`** — Model config (main, small), agent definitions with model assignments, npm plugins, MCP servers, instruction files
+2. **`ocx.jsonc`** — Features (renameWindow), exclusion patterns, registries
+3. **`tui.json`** — TUI plugin list
+4. **`agents/*.md`** — Each agent's description (extract from YAML frontmatter `description:` field) and mode (`mode:` field)
+ 5. **`plugins/*.ts`** — System plugin names. Extract descriptions from the JSDoc block at the top of each file (first meaningful ` * ` line). Skip utility/helper files in primitive subdirectories (they are helpers, not standalone plugins).
+6. **`skills/*/SKILL.md`** — Skill names and descriptions from YAML frontmatter
+7. **`commands/*.md`** — Command names and descriptions from YAML frontmatter
+8. **`tools/*.md`** — Instruction files loaded by the profile
+ 9. **`parent-tree.json`** — Provenance chain: the `self` field tracks the source this profile was originally derived from; the `parents` array extends that chain. This is for attribution/history only — the published home of this profile is the zhran registry.
+
+## Required README Structure
+
+Write `README.md` with these sections in order:
+
+### 1. Title & Tagline
+```markdown
+# Profile: __PROFILE_NAME__
+> Production-grade OpenCode workspace profile with agent orchestration.
+```
+
+### 2. Quick Start
+```bash
+# Add the registry (one-time)
+ocx registry add https://ahmed-zhran.github.io/ocx-profiles/ --name zhran --global
+
+# Install this profile
+ocx profile add __PROFILE_NAME__ --source zhran/__PROFILE_NAME__ --global
+
+# Launch OpenCode with this profile
+ocx opencode -p __PROFILE_NAME__
+```
+
+### 3. Features
+From `ocx.jsonc`:
+- If `renameWindow` is true, mention that terminal windows are renamed to the active project name
+- Explain secure context isolation: project AGENTS.md is included for task awareness, while CLAUDE.md, CONTEXT.md, and .opencode/ directories are excluded to prevent config leakage
+- List all exclusion patterns as a sub-list
+
+### 4. Model Configuration
+Table with columns: Role | Model
+Rows: Main (from `model`), Small (from `small_model`)
+
+### 5. Agents
+Two sub-tables. Classify:
+- **Orchestration Agents**: `plan` and `build` (they delegate, have `task` permission, edit restricted)
+- **Subagents**: `coder`, `explore`, `researcher`, `reviewer`, `scribe` (they perform specific roles)
+
+Each table has columns: Agent | Model | Description
+Extract descriptions from `agents/*.md` frontmatter `description:` field. If an agent has no file, check inline `description` in `opencode.jsonc`.
+
+### 6. Orchestration Flow
+Describe the agent delegation workflow:
+- `build` (primary orchestrator) receives high-level tasks, delegates to specialists, never implements directly
+- `plan` handles architecture design and planning
+- `coder` implements code with full write/edit/bash permissions, follows philosophy skills, runs verification
+- `explore` searches codebase with read-only commands (find, grep, git)
+- `researcher` gathers external knowledge from web, GitHub, docs via MCP tools
+- `reviewer` reviews code for correctness, security, performance, style; reports by severity
+- `scribe` writes documentation, commits, changelogs
+- All agents run async via task mechanism, each with own model and permissions
+
+### 7. Plugins
+Three sub-sections:
+
+**System Plugins** — Bullet list of `plugins/*.ts` files (skip utility/primitive helper subdirectories). Format: `- **name**: description`
+
+**NPM Plugins** — Inline code list of npm packages from `opencode.jsonc` `plugin` array. Format: `` - `package@version` ``
+
+**TUI Plugins** — Inline code list from `tui.json` `plugin` array. Format: `` - `plugin-name` ``
+
+### 8. MCP Servers
+Table with columns: Server | Type | URL
+Read from `opencode.jsonc` `mcp` config.
+
+### 9. Skills
+Table with columns: Skill | Description
+Read from `skills/*/SKILL.md` frontmatter.
+
+### 10. Commands
+Table with columns: Command | Description
+Read from `commands/*.md` frontmatter.
+
+### 11. Tools / Instructions
+List instruction files from `opencode.jsonc` `instructions` array. For each, read the first few lines to determine its purpose.
+
+### 12. Registry Information
+- **Published under**: [ahmed-zhran/ocx-profiles](https://ahmed-zhran.github.io/ocx-profiles/) registry
+- **Component**: `zhran/__PROFILE_NAME__`
+- **Profile Path**: `~/.config/opencode/profiles/__PROFILE_NAME__/`
+- **Provenance**: This profile is published independently under the zhran registry. For details on the source profile it was built upon, see `parent-tree.json` in the profile root, which tracks the full provenance chain.
+
+## Quality Requirements
+
+- EVERY section must be present, even if data is sparse (use "(none)" placeholder)
+- Use proper markdown throughout (tables, code fences, bold, lists)
+- Agent descriptions must be extracted from frontmatter — not generic placeholders
+- Plugin descriptions from JSDoc must be the real one-liner, not the name repeated
+- Be accurate: read each file, don't invent data
+- The README should be immediately useful to someone who clones this profile
+- **Attribution**: This profile is published under the `zhran` registry (`https://ahmed-zhran.github.io/ocx-profiles/`). Present it as such in the Overview and Registry Information sections. If `parent-tree.json` references an upstream source, present that as provenance history only — do NOT present any upstream source or registry as the current owner.
+
+## Output
+
+Write the result to `README.md` in the current directory. Overwrite if it exists.
+PROMPTEOF
+
+  # Replace placeholder with actual profile name
+  sed -i "s|__PROFILE_NAME__|$profile_name|g" "$prompt_file"
+
+  echo "    📝  README generation prompt written to: $prompt_file"
+  echo "    🚀  Launching opencode to generate README..."
+  (cd "$profile_dir" && opencode run -f "README.task.md" --dangerously-skip-permissions -- \
+    "Follow the instructions in the attached task file to generate README.md for this profile.")
+  rm -f "$prompt_file"
+  echo "    ✅  README generated"
+}
+
+# ---- Validate arguments ----
+[ -z "$SRC" ] && usage
+
+SRC_DIR="$PROFILES_DIR/$SRC"
+if [ ! -d "$SRC_DIR" ]; then
+  echo "Error: Source profile '$SRC' not found at $SRC_DIR"
+  echo ""
+  echo "Available profiles:"
+  ls -1 "$PROFILES_DIR/"
+  exit 1
+fi
+
+# ---- Validate parent-tree.json exists ----
+PARENT_TREE_FILE="$SRC_DIR/parent-tree.json"
+if [ ! -f "$PARENT_TREE_FILE" ]; then
+  echo "❌  Error: Source profile '$SRC' has no parent-tree.json"
+  echo ""
+  echo "    Create it at: $PARENT_TREE_FILE"
+  echo ""
+  echo "    For a root profile (no parent), use:"
+  echo '    {'
+  echo '      "self": { "registry": "https://ahmed-zhran.github.io/ocx-profiles/", "src": "zhran/ws", "name": "ws" },'
+  echo '      "parents": []'
+  echo '    }'
+  echo ""
+  echo "    For a profile that was cloned from another (already has parent-tree.json):"
+  echo "    Just publish it — the existing parent-tree.json will be used automatically."
+  exit 1
+fi
+
+# Validate parent-tree.json has self with required fields
+if ! jq -e '.self and .self.registry and .self.src and .self.name' "$PARENT_TREE_FILE" > /dev/null 2>&1; then
+  echo "❌  Error: parent-tree.json must have 'self' with 'registry', 'src', and 'name' fields"
+  echo ""
+  echo "    Expected structure:"
+  echo '    { "self": { "registry": "...", "src": "...", "name": "..." }, "parents": [...] }'
+  exit 1
+fi
+
+# ---- Generate/update profile README via opencode prompt ----
+if [ "$SKIP_README" = false ]; then
+  generate_readme_via_opencode "$SRC_DIR" "$SRC"
+else
+  echo "    (skipping README generation --skip-readme)"
+fi
+
+echo "📦  Publishing profile '$SRC' → component '$PUBLISH_NAME'"
+echo "    Source: $SRC_DIR"
+
+# ---- Clone registry repo ----
+WORK_DIR=$(mktemp -d)
+trap "rm -rf '$WORK_DIR'" EXIT
+
+echo "🔄  Cloning registry repo..."
+git clone "$REPO" "$WORK_DIR"
+cd "$WORK_DIR"
+
+# ---- Copy profile files (snapshot - all files, no deps) ----
+DEST_DIR="files/profiles/$PUBLISH_NAME"
+mkdir -p "$DEST_DIR"
+echo "📋  Snapshotting ALL profile files..."
+cp -a "$SRC_DIR/"* "$DEST_DIR/"
+rm -rf "$DEST_DIR/node_modules" 2>/dev/null || true
+
+FILE_COUNT=$(find "$DEST_DIR" -type f | wc -l)
+echo "    $FILE_COUNT files copied"
+
+# Clean up legacy profiles/<name>/ directory if it exists from earlier versions
+rm -rf "profiles/$PUBLISH_NAME" 2>/dev/null || true
+
+# ---- Transform parent-tree.json ----
+echo "📝  Building provenance chain..."
+OLD_SELF=$(jq '.self' "$PARENT_TREE_FILE")
+PARENTS=$(jq '.parents' "$PARENT_TREE_FILE")
+
+# Build new self (published profile — no name field)
+NEW_SELF=$(jq -n \
+  --arg registry "$REGISTRY_URL" \
+  --arg src "$REGISTRY_ALIAS/$PUBLISH_NAME" \
+  '{registry: $registry, src: $src}')
+
+# Build new parent tree: old self gets pushed to parents array
+jq -n \
+  --argjson new_self "$NEW_SELF" \
+  --argjson old_self "$OLD_SELF" \
+  --argjson parents "$PARENTS" \
+  '{self: $new_self, parents: ($parents + [$old_self])}' > "$DEST_DIR/parent-tree.json"
+
+echo "    Provenance: $PUBLISH_NAME ← $(echo "$OLD_SELF" | jq -r '.name // "unknown"')"
+
+# ---- Update registries in ocx.jsonc to point to zhran only ----
+OCX_JSONC="$DEST_DIR/ocx.jsonc"
+if [ -f "$OCX_JSONC" ]; then
+  # Strip // comments (JSONC) then use jq to replace registries
+  # If jq fails (e.g., trailing commas), warn but don't block publish
+  if sed '/^[[:space:]]*\/\//d' "$OCX_JSONC" | \
+     jq --arg alias "$REGISTRY_ALIAS" --arg url "$REGISTRY_URL" \
+       '.registries = {($alias): {url: $url}}' > "${OCX_JSONC}.tmp" 2>/dev/null; then
+    mv "${OCX_JSONC}.tmp" "$OCX_JSONC"
+    echo "    Registries updated to $REGISTRY_ALIAS in ocx.jsonc"
+  else
+    rm -f "${OCX_JSONC}.tmp"
+    echo "    ⚠️  Could not update registries in ocx.jsonc (unsupported format)"
+  fi
+fi
+
+# ---- Generate registry.jsonc ----
+echo "📝  Generating registry.jsonc..."
+
+build_file_entries() {
+  local name="$1"
+  local dir="files/profiles/$name"
+
+  if [ ! -d "$dir" ]; then
+    echo "[]"
+    return
+  fi
+
+  find "$dir" -type f | sort | while read -r f; do
+    local rel_path="${f#files/}"
+    local target="${rel_path#profiles/$name/}"
+    jq -n -c --arg path "$rel_path" --arg target "$target" '{path: $path, target: $target}'
+  done | jq -s '.'
+}
+
+build_component() {
+  local name="$1"
+  local file_entries
+  file_entries=$(build_file_entries "$name")
+
+  if [ "$file_entries" = "[]" ]; then
+    echo "null"
+    return
+  fi
+
+  jq -n -c \
+    --arg name "$name" \
+    --argjson files "$file_entries" \
+    '{
+      name: $name,
+      type: "profile",
+      description: ("Published profile " + $name),
+      files: $files,
+      dependencies: []
+    }'
+}
+
+# Collect all profile names from files/profiles/*/
+PROFILE_NAMES=()
+for d in files/profiles/*/; do
+  [ -d "$d" ] || continue
+  name=$(basename "$d")
+  PROFILE_NAMES+=("$name")
+done
+
+# Build components JSON array
+COMPONENTS="["
+first=true
+for name in "${PROFILE_NAMES[@]}"; do
+  if [ "$first" = true ]; then
+    first=false
+  else
+    COMPONENTS+=","
+  fi
+  COMPONENTS+=$(build_component "$name")
+done
+COMPONENTS+="]"
+
+# Write registry.jsonc
+jq -n \
+  --argjson components "$COMPONENTS" \
+  '{
+    "$schema": "https://ocx.kdco.dev/schemas/v2/registry.json",
+    "name": "Ahmed Zhran Profiles",
+    "version": "1.0.0",
+    "author": "ahmed-zhran",
+    "components": $components
+  }' > registry.jsonc
+
+echo "    Registry definition written with ${#PROFILE_NAMES[@]} profile(s)"
+
+# ---- Build registry packument ----
+echo "🔨  Building registry packument with ocx..."
+ocx build . --out dist
+
+# ---- Commit and push ----
+echo "⬆️  Pushing to GitHub..."
+git add -A
+git commit -m "publish-ocx-profile: add $PUBLISH_NAME (from $SRC)"
+git push origin main
+
+# ---- Output ----
+echo ""
+echo "✅  Published '$PUBLISH_NAME' to your registry!"
+echo ""
+echo "    Registry URL: $REGISTRY_URL"
+echo ""
+echo "    Install commands:"
+echo "      ocx registry add $REGISTRY_URL --name $REGISTRY_ALIAS --global"
+echo "      ocx profile add $PUBLISH_NAME --source $REGISTRY_ALIAS/$PUBLISH_NAME --global"
+echo ""
+echo "    Note: GitHub Pages deployment may take ~1-2 minutes after push."

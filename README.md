@@ -9,7 +9,9 @@ A collection of personal Ubuntu utility scripts for productivity, browser manage
 - [YouTube Utilities](#-youtube-utilities)
 - [Manhwa Scraping](#-manhwa-scraping)
 - [System Tools](#-system-tools)
-- [System Tools](#-system-tools)
+- [OCX Profile Management](#-ocx-profile-management)
+- [Installation](#-installation)
+- [AI Agents Management](#-ai-agents-management)
 
 ---
 
@@ -23,6 +25,7 @@ Ensure you have the following tools installed:
 - **ImageMagick**: Required for icon processing in `webapp-create`.
 - **xprop**: Required for window detection in `webapp-create`.
 - **Python 3 + img2pdf**: Required for PDF generation in `manhwa-scrape` (`pip install img2pdf`).
+- **OpenCode CLI**: Required for `clone-ocx-profile`, `publish-ocx-profile`, and `unpublish-ocx-profile`. Install via `curl -fsSL https://opencode.ai/install | bash`.
 
 ---
 
@@ -118,13 +121,43 @@ Interactively set the default system editor.
   - Uses `update-alternatives` to set the system default.
   - Updates `EDITOR` and `VISUAL` variables in `~/.bashrc`.
 
-### `opencode-setup-big-pickle`
+### `opencode-setup`
 Install and configure the OpenCode CLI to work with the Big Pickle ("pig pickle") model.
 - **Usage**: `./opencode-setup [API_KEY]`
 - **What it does**:
   - Automatically installs the OpenCode CLI if not present.
   - Configures the `OPENCODE_API_KEY` in environment profiles (`~/.bashrc`, `~/.zshrc`).
   - Sets up global and project-level configs to use the `opencode/big-pickle` model.
+
+---
+
+## 📦 OCX Profile Management
+
+Publish, clone, and manage OpenCode profiles on the zhran GitHub Pages registry.
+
+### `clone-ocx-profile`
+Clones a profile from the personal zhran OCX registry to your local machine.
+- **Usage**: `./clone-ocx-profile <name> [source-name]`
+- **Examples**:
+  - `./clone-ocx-profile z-ws` — install `zhran/z-ws` as local profile `z-ws`
+  - `./clone-ocx-profile my-ws ws` — install `zhran/ws` as local profile `my-ws`
+- **What it does**: Runs `ocx profile add` under the hood, then updates `parent-tree.json` with the cloned name for provenance tracking.
+
+### `publish-ocx-profile`
+Publishes a local OpenCode profile to the zhran GitHub Pages registry.
+- **Usage**: `./publish-ocx-profile [options] <source-name> [publish-name]`
+- **Options**:
+  - `--skip-readme` — Skip AI-powered README generation for the published profile
+- **Examples**:
+  - `./publish-ocx-profile ws` — publish local `ws` profile as component `ws`
+  - `./publish-ocx-profile ws z-ws` — publish local `ws` as component `z-ws`
+- **What it does**: Snapshots all files from the source profile, builds a provenance chain in `parent-tree.json`, regenerates `registry.jsonc`, and pushes to GitHub Pages. Optionally generates a README via AI from the profile contents.
+
+### `unpublish-ocx-profile`
+Removes a published profile component from the zhran OCX registry.
+- **Usage**: `./unpublish-ocx-profile <profile-name>`
+- **Example**: `./unpublish-ocx-profile z-ws` — removes component `z-ws` from the registry
+- **What it does**: Deletes the profile files from the registry repo, regenerates `registry.jsonc`, rebuilds the packument, and pushes the updated registry to GitHub Pages.
 
 ---
 
