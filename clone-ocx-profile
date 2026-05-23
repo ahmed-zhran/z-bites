@@ -1,0 +1,71 @@
+#!/bin/bash
+# clone-ocx-profile - Clone a profile from your zhran registry
+# Usage: clone-ocx-profile <name> [source-name]
+#
+# Installs a profile from the zhran OCX registry to your local machine.
+# After install, updates parent-tree.json with the local clone name.
+#
+# Arguments:
+#   <name>         Local profile name to create
+#   [source-name]  Registry component name (defaults to <name>)
+#
+# Prerequisites:
+#   The zhran registry must be added first:
+#     ocx registry add https://ahmed-zhran.github.io/ocx-profiles/ --name zhran --global
+#
+# Examples:
+#   clone-ocx-profile z-ws         # install zhran/z-ws as "z-ws"
+#   clone-ocx-profile my-ws ws     # install zhran/ws as "my-ws"
+
+set -euo pipefail
+
+PROFILES_DIR="$HOME/.config/opencode/profiles"
+NAME="${1:-}"
+SOURCE="${2:-$NAME}"
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") <name> [source-name]
+
+Clone a profile from your zhran registry.
+
+Arguments:
+  <name>         Local profile name to create
+  [source-name]  Registry component name (defaults to <name>)
+
+Examples:
+  $(basename "$0") z-ws         # install zhran/z-ws as "z-ws"
+  $(basename "$0") my-ws ws     # install zhran/ws as "my-ws"
+EOF
+  exit 1
+}
+
+[ -z "$NAME" ] && usage
+
+# ---- Remove existing profile if present (allow overwrite) ----
+if [ -d "$PROFILES_DIR/$NAME" ]; then
+  echo "    Profile '$NAME' exists locally. Removing before clone..."
+  ocx profile remove "$NAME" --global
+  echo "    Removed existing profile '$NAME'"
+fi
+
+echo "📦  Cloning zhran/$SOURCE → profile '$NAME'..."
+ocx profile add "$NAME" --source "zhran/$SOURCE" --global
+
+# ---- Update parent-tree.json with local clone name ----
+INSTALL_DIR="$PROFILES_DIR/$NAME"
+PARENT_TREE="$INSTALL_DIR/parent-tree.json"
+
+if [ -f "$PARENT_TREE" ]; then
+  # Add name field to self (published profiles omit name)
+  jq ".self.name = \"$NAME\"" "$PARENT_TREE" > "${PARENT_TREE}.tmp" && \
+    mv "${PARENT_TREE}.tmp" "$PARENT_TREE"
+  echo "📝  Provenance: cloned as '$NAME'"
+else
+  echo "⚠️  Warning: No parent-tree.json found in installed profile"
+  echo "    Profile was installed but provenance tracking is incomplete"
+fi
+
+echo ""
+echo "✅  Profile '$NAME' installed from zhran/$SOURCE"
+echo "    Use: ocx opencode -p $NAME"
